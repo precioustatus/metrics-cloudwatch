@@ -1,27 +1,23 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Identifiers
 
-group = 'com.blacklocus'
+group = 'com.precioustatus'
 version = '0.3.5-SNAPSHOT'
-ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Plugins
 
 apply plugin: 'java'
-sourceCompatibility = 1.6
-targetCompatibility = 1.6
-
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 apply plugin: 'maven'
-apply plugin: 'signing'
-apply plugin: 'idea'
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Defines
 
 /** Function always returns a new manifest that can be customized */
 def defaultManifest() {
-    return manifest{
+    return manifest {
         def git_cmd = "git rev-parse HEAD"
         def git_proc = git_cmd.execute()
         attributes 'SCM-Revision': git_proc.text.trim()
@@ -36,24 +32,6 @@ def defaultBlank(closure) {
     } catch (MissingPropertyException e) {
         ''
     }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// License
-
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.5.0'
-    }
-}
-apply plugin: 'license'
-
-license {
-    header rootProject.file('src/license/HEADER')
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -102,71 +80,20 @@ artifacts {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Publishing
-
-signing {
-    required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
-    sign configurations.archives
-}
-
 uploadArchives {
-    dependsOn licenseFormatMain, licenseFormatTest
-    repositories.mavenDeployer {
-        beforeDeployment { MavenDeployment deployment -> signPom(deployment) }
+    repositories {
+        mavenDeployer {
+            repository(url: RELEASE_REPO_URL) {
+                authentication(userName: ARTIFACTORY_USER, password: ARTIFACTORY_PASSWORD)
+            }
 
-        //# ./gradlew -PdeployUrl=http://server/artifactory/repo -PdeployUsername=admin -PdeployPassword=pass uploadArchives
-        repository(
-                url: defaultBlank({ deployUrl })
-                // for snapshots
-//                url: "https://oss.sonatype.org/content/repositories/snapshots/"
-                // for staging/release
-//                url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-        ) {
-            // If these are not defined assemble needlessly fails for unrelated tasks.
-            authentication(userName: defaultBlank({ deployUsername }), password: defaultBlank({ deployPassword }))
-        }
+            snapshotRepository(url: SNAPSHOT_REPO_URL) {
+                authentication(userName: ARTIFACTORY_USER, password: ARTIFACTORY_PASSWORD)
+            }
 
-        pom.project {
-            name 'metrics-cloudwatch'
-            description "A codahale metrics reporter to Amazon CloudWatch"
-            url 'https://github.com/blacklocus/metrics-cloudwatch'
-            licenses {
-                license {
-                    name 'The Apache Software License, Version 2.0'
-                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    distribution 'repo'
-                }
-            }
-            scm {
-                url 'scm:https://github.com/blacklocus/metrics-cloudwatch.git'
-                connection 'scm:git://github.com/blacklocus/metrics-cloudwatch.git'
-                developerConnection 'scm:git@github.com:blacklocus/metrics-cloudwatch.git'
-            }
-            organization {
-                name 'BlackLocus'
-                url 'http://www.blacklocus.com'
-            }
-            developers {
-                developer {
-                    id 'dirkraft'
-                    name 'Jason Dunkelberger'
-                    organization 'BlackLocus'
-                    organizationUrl 'http://www.blacklocus.com'
-                }
-            }
+            mavenLocal()
         }
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Tooling
-
-idea {
-    project {
-        languageLevel = '1.6'
-    }
-}
-
-task createWrapper(type: Wrapper) {
-    gradleVersion = '1.8'
-}
 

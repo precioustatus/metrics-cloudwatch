@@ -2,10 +2,15 @@
 *.class
 .gradle/*
 
+#gradle files/links
+gradle.properties
+init.gradle
+
 build/
 out/
 
 # IDEA project files
+.idea/
 *.iml
 *.ipr
 *.iws

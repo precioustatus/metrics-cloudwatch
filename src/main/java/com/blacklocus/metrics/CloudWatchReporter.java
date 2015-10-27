@@ -1,12 +1,12 @@
 /**
  * Copyright 2013 BlackLocus
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,14 +26,12 @@ import com.codahale.metrics.Counting;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
-import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Sampling;
 import com.codahale.metrics.ScheduledReporter;
 import com.codahale.metrics.Snapshot;
 import com.codahale.metrics.Timer;
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
@@ -78,48 +76,40 @@ import java.util.concurrent.TimeUnit;
  */
 public class CloudWatchReporter extends ScheduledReporter {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CloudWatchReporter.class);
-
-    /**
-     * Locale-agnostic decimal separator - used for percentile type-dimension names
-     */
-    private static final String DECIMAL_SEPARATOR = "X";
-
-    /**
-     * Default percentile values to report for {@link Sampling} metrics
-     */
-    private static final double[] DEFAULT_PERCENTILES = new double[]{50, 90, 95, 99};
-
     /**
      * Delimiter of tokens in the metric name. Plain tokens will be retained as the CloudWatch "Metric Name".
      */
     public static final String NAME_TOKEN_DELIMITER_RGX = "\\s";
     // For building; should qualify against NAME_TOKEN_DELIMITER_RGX
     public static final String NAME_TOKEN_DELIMITER = " ";
-
     /**
      * Separator of key and value segments of a metric name. These segments will be split into the key and value of
      * a CloudWatch {@link Dimension}.
      */
     public static final String NAME_DIMENSION_SEPARATOR = "=";
-
     /**
      * If any token, whether a simple string or a dimension pair ends with this marker, then metrics will be sent once
      * with and once without.
      */
     public static final String NAME_PERMUTE_MARKER = "*";
-
     /**
      * Key of {@link Dimension#name} for the type of metric submission, e.g. gauge, counterSum, meterSum, ...
      */
     public static final String METRIC_TYPE_DIMENSION = "type";
-
-
     // Should line up with constants. Name should not contain any special character, and may optionally end with the
     // permute marker.
     public static final String VALID_NAME_TOKEN_RGX = "[^\\s=\\*]+\\*?";
     public static final String VALID_DIMENSION_PART_RGX = "[^\\s=\\*]+";
-
+    static final MetricFilter ALL = (name, metric) -> true;
+    private static final Logger LOG = LoggerFactory.getLogger(CloudWatchReporter.class);
+    /**
+     * Locale-agnostic decimal separator - used for percentile type-dimension names
+     */
+    private static final String DECIMAL_SEPARATOR = "X";
+    /**
+     * Default percentile values to report for {@link Sampling} metrics
+     */
+    private static final double[] DEFAULT_PERCENTILES = new double[]{50, 90, 95, 99};
     /**
      * Carried into to CloudWatch namespace
      */
@@ -139,6 +129,7 @@ public class CloudWatchReporter extends ScheduledReporter {
     public CloudWatchReporter(MetricRegistry registry, AmazonCloudWatchAsync cloudWatch) {
         this(registry, null, cloudWatch);
     }
+
     /**
      * Creates a new {@link ScheduledReporter} instance. The reporter does not report metrics until
      * {@link #start(long, TimeUnit)}.
@@ -166,6 +157,7 @@ public class CloudWatchReporter extends ScheduledReporter {
                               AmazonCloudWatchAsync cloudWatch) {
         this(registry, metricNamespace, ALL, cloudWatch);
     }
+
     /**
      * Creates a new {@link ScheduledReporter} instance. The reporter does not report metrics until
      * {@link #start(long, TimeUnit)}.
@@ -307,7 +299,6 @@ public class CloudWatchReporter extends ScheduledReporter {
         }
     }
 
-
     void reportGauge(Map.Entry<String, Gauge> gaugeEntry, String type, List<MetricDatum> data) {
         Gauge gauge = gaugeEntry.getValue();
 
@@ -321,12 +312,7 @@ public class CloudWatchReporter extends ScheduledReporter {
             final Number value = NumberUtils.createNumber(valueStr);
 
             DemuxedKey key = new DemuxedKey(gaugeEntry.getKey());
-            Iterables.addAll(data, key.newDatums(type, new Function<MetricDatum, MetricDatum>() {
-                @Override
-                public MetricDatum apply(MetricDatum datum) {
-                    return datum.withValue(value.doubleValue());
-                }
-            }));
+            Iterables.addAll(data, key.newDatums(type, datum -> datum.withValue(value.doubleValue())));
         }
     }
 
@@ -340,12 +326,7 @@ public class CloudWatchReporter extends ScheduledReporter {
         }
 
         DemuxedKey key = new DemuxedKey(entry.getKey());
-        Iterables.addAll(data, key.newDatums(type, new Function<MetricDatum, MetricDatum>() {
-            @Override
-            public MetricDatum apply(MetricDatum datum) {
-                return datum.withValue((double) diff).withUnit(StandardUnit.Count);
-            }
-        }));
+        Iterables.addAll(data, key.newDatums(type, datum -> datum.withValue((double) diff).withUnit(StandardUnit.Count)));
     }
 
     /**
@@ -363,12 +344,7 @@ public class CloudWatchReporter extends ScheduledReporter {
 
         DemuxedKey key = new DemuxedKey(entry.getKey());
 
-        Iterables.addAll(data, key.newDatums(type, new Function<MetricDatum, MetricDatum>() {
-            @Override
-            public MetricDatum apply(MetricDatum datum) {
-                return datum.withStatisticValues(statisticSet);
-            }
-        }));
+        Iterables.addAll(data, key.newDatums(type, datum -> datum.withStatisticValues(statisticSet)));
 
         //Add percentiles as extended types
         for (double percentile : percentiles) {
@@ -378,12 +354,7 @@ public class CloudWatchReporter extends ScheduledReporter {
                     .withMinimum((double) snapshot.getMin() * rescale)
                     .withMaximum((double) snapshot.getMax() * rescale);
 
-            Iterables.addAll(data, key.newDatums(buildPercentileTypeValue(type, percentile), new Function<MetricDatum, MetricDatum>() {
-                @Override
-                public MetricDatum apply(MetricDatum datum) {
-                    return datum.withStatisticValues(percentileSet);
-                }
-            }));
+            Iterables.addAll(data, key.newDatums(buildPercentileTypeValue(type, percentile), datum -> datum.withStatisticValues(percentileSet)));
         }
     }
 
@@ -410,13 +381,5 @@ public class CloudWatchReporter extends ScheduledReporter {
         for (long value : values) sum += value;
         return sum;
     }
-
-
-    static final MetricFilter ALL = new MetricFilter() {
-        @Override
-        public boolean matches(String name, Metric metric) {
-            return true;
-        }
-    };
 
 }

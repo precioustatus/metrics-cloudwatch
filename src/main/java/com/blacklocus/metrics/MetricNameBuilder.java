@@ -1,12 +1,12 @@
 /**
  * Copyright 2013 BlackLocus
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,12 +23,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.blacklocus.metrics.CloudWatchReporter.NAME_DIMENSION_SEPARATOR;
-import static com.blacklocus.metrics.CloudWatchReporter.NAME_PERMUTE_MARKER;
-import static com.blacklocus.metrics.CloudWatchReporter.NAME_TOKEN_DELIMITER;
-import static com.blacklocus.metrics.CloudWatchReporter.NAME_TOKEN_DELIMITER_RGX;
-import static com.blacklocus.metrics.CloudWatchReporter.VALID_DIMENSION_PART_RGX;
-import static com.blacklocus.metrics.CloudWatchReporter.VALID_NAME_TOKEN_RGX;
+import static com.blacklocus.metrics.CloudWatchReporter.*;
 
 /**
  * A builder for the metrics name syntax defined by this module. Useful when programmatically constructing metric names.
@@ -49,7 +44,7 @@ public class MetricNameBuilder {
 
     /**
      * @param nameToken must be a single valid name segment which is summarized by the regex
-     *             {@link CloudWatchReporter#VALID_NAME_TOKEN_RGX} (it may end in the permute operator).
+     *                  {@link CloudWatchReporter#VALID_NAME_TOKEN_RGX} (it may end in the permute operator).
      * @return this for chaining
      * @throws MetricsNameSyntaxException on validation failure
      */
@@ -64,9 +59,9 @@ public class MetricNameBuilder {
     }
 
     /**
-     * @param nameToken    must be a single valid name segment which is summarized by the regex
-     *                {@link CloudWatchReporter#VALID_NAME_TOKEN_RGX} (it may end in the permute operator).
-     * @param permute whether or not this token should permute
+     * @param nameToken must be a single valid name segment which is summarized by the regex
+     *                  {@link CloudWatchReporter#VALID_NAME_TOKEN_RGX} (it may end in the permute operator).
+     * @param permute   whether or not this token should permute
      * @return this for chaining
      * @throws MetricsNameSyntaxException on validation failure
      */
@@ -85,8 +80,8 @@ public class MetricNameBuilder {
      *                 {@link CloudWatchReporter} and demuxes into corresponding dimensions and permutations.
      *                 There is no need to use a MetricsNameBuilder if you already have the completed string. Set it
      *                 directly to be the metric name, e.g. <pre>
-     *                     metricRegistry.counter("MyMetric SomeTag* color=green machine=1.2.3.4*").inc();
-     *                 </pre>
+     *                                                     metricRegistry.counter("MyMetric SomeTag* color=green machine=1.2.3.4*").inc();
+     *                                                 </pre>
      * @return this for chaining
      * @throws MetricsNameSyntaxException on validation failure
      */
@@ -105,6 +100,7 @@ public class MetricNameBuilder {
     /**
      * {@link #addDimension(Dimension, boolean)} without permutation (false)
      *
+     * @param dimension the dimension to add to this builder
      * @return this for chaining
      * @throws MetricsNameSyntaxException on validation failure
      */
@@ -115,6 +111,8 @@ public class MetricNameBuilder {
     /**
      * Passes into {@link #addDimension(String, String, boolean)}
      *
+     * @param dimension the dimension to add to this builder
+     * @param permute   permutability of dimension
      * @return this for chaining
      * @throws MetricsNameSyntaxException on validation failure
      */
@@ -125,6 +123,8 @@ public class MetricNameBuilder {
     /**
      * {@link #addDimension(String, String, boolean)} without permutation (false)
      *
+     * @param name  of dimension
+     * @param value of dimension
      * @return this for chaining
      * @throws MetricsNameSyntaxException on validation failure
      */
@@ -133,8 +133,8 @@ public class MetricNameBuilder {
     }
 
     /**
-     * @param name of dimension
-     * @param value of dimension
+     * @param name    of dimension
+     * @param value   of dimension
      * @param permute permutability of dimension
      * @return this for chaining
      * @throws MetricsNameSyntaxException on validation failure
