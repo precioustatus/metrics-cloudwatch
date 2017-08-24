@@ -2,15 +2,15 @@
 // Identifiers
 
 group = 'com.blacklocus'
-version = '0.4.1-SNAPSHOT'
+version = '0.4.0-PS.01'
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Plugins
 
 apply plugin: 'java'
-sourceCompatibility = 1.6
-targetCompatibility = 1.6
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 apply plugin: 'maven'
 apply plugin: 'signing'
@@ -64,12 +64,11 @@ repositories {
 }
 
 dependencies {
-    compile 'com.amazonaws:aws-java-sdk-cloudwatch:1.10.47'
-    compile 'io.dropwizard.metrics:metrics-core:3.1.2'
-
-    compile 'org.apache.commons:commons-lang3:3.4'
-    compile 'com.google.guava:guava:19.0'
-    compile 'org.slf4j:slf4j-api:1.7.13'
+    compile 'com.amazonaws:aws-java-sdk-cloudwatch:1.11.113'
+    compile 'io.dropwizard.metrics:metrics-core:3.2.2'
+    compile 'org.apache.commons:commons-lang3:3.5'
+    compile 'com.google.guava:guava:21.0'
+    compile 'org.slf4j:slf4j-api:1.7.24'
 
     testCompile 'junit:junit:4.12'
     testCompile 'org.slf4j:slf4j-simple:1.7.13'
@@ -118,7 +117,7 @@ signing {
 
 uploadArchives {
     repositories.mavenDeployer {
-        beforeDeployment { MavenDeployment deployment -> signPom(deployment) }
+//        beforeDeployment { MavenDeployment deployment -> signPom(deployment) }
 
         //# ./gradlew -PdeployUrl=http://server/artifactory/repo -PdeployUsername=admin -PdeployPassword=pass uploadArchives
         repository(
@@ -169,7 +168,7 @@ uploadArchives {
 
 idea {
     project {
-        languageLevel = '1.6'
+        languageLevel = '1.8'
     }
 }
 
